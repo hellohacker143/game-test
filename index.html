@@ -16,18 +16,26 @@
         .game-links {
             margin-top: 20px;
         }
-        .game-links a {
+        .game-links button {
             display: block;
             font-size: 20px;
             margin: 10px;
             padding: 10px;
-            text-decoration: none;
+            cursor: pointer;
             background: #3498db;
             color: white;
+            border: none;
             border-radius: 5px;
         }
-        .game-links a:hover {
+        .game-links button:hover {
             background: #2980b9;
+        }
+        #game-frame {
+            width: 90%;
+            height: 500px;
+            margin-top: 20px;
+            border: 2px solid black;
+            display: none;
         }
     </style>
 </head>
@@ -37,10 +45,20 @@
     <p>Click a game to play!</p>
 
     <div class="game-links">
-        <a href="media-pipe-pong.html" target="_blank">🏓 Play MediaPipe Line Pong</a>
-        <a href="hong-game.html" target="_blank">🎮 Play Hong Game</a>
-        <a href="gt.html" target="_blank">🐍 Play Snake Game</a>
+        <button onclick="loadGame('media-pipe-pong.html')">🏓 Play MediaPipe Line Pong</button>
+        <button onclick="loadGame('hong-game.html')">🎮 Play Hong Game</button>
+        <button onclick="loadGame('gt.html')">🐍 Play Snake Game</button>
     </div>
+
+    <iframe id="game-frame"></iframe>
+
+    <script>
+        function loadGame(gameUrl) {
+            let frame = document.getElementById("game-frame");
+            frame.style.display = "block";
+            frame.src = gameUrl;
+        }
+    </script>
 
 </body>
 </html>
