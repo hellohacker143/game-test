@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaPipe Line Pong</title>
+    <title>Hand Gesture Pong</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
@@ -21,26 +21,81 @@
             display: block;
             margin: auto;
         }
+        #video {
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <h1>🏓 MediaPipe Line Pong</h1>
-    <p>Move your hand to control the paddle!</p>
+    <h1>🏓 Hand Gesture Pong</h1>
+    <p>Move your hand up and down to control the paddle!</p>
 
+    <video id="video" autoplay></video>
     <canvas id="pongCanvas" width="800" height="400"></canvas>
     
     <script>
         const canvas = document.getElementById('pongCanvas');
         const ctx = canvas.getContext('2d');
+        const video = document.getElementById("video");
 
-        let paddleX = canvas.width / 2 - 50;
-        const paddleWidth = 100;
-        const paddleHeight = 10;
+        let playerY = canvas.height / 2 - 50;
+        const paddleWidth = 10, paddleHeight = 100;
+        let ballX = canvas.width / 2, ballY = canvas.height / 2;
+        let ballSpeedX = 4, ballSpeedY = 4;
+        let aiY = canvas.height / 2 - 50;
 
-        function drawPaddle() {
+        function drawPaddle(x, y) {
             ctx.fillStyle = "white";
-            ctx.fillRect(paddleX, canvas.height - 20, paddleWidth, paddleHeight);
+            ctx.fillRect(x, y, paddleWidth, paddleHeight);
+        }
+
+        function drawBall(x, y) {
+            ctx.fillStyle = "white";
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function moveAI() {
+            let aiCenter = aiY + paddleHeight / 2;
+            if (aiCenter < ballY - 35) aiY += 5;
+            else if (aiCenter > ballY + 35) aiY -= 5;
+        }
+
+        function updateBall() {
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            if (ballY <= 0 || ballY >= canvas.height) ballSpeedY *= -1;
+
+            if (
+                ballX <= paddleWidth && ballY >= playerY && ballY <= playerY + paddleHeight ||
+                ballX >= canvas.width - paddleWidth && ballY >= aiY && ballY <= aiY + paddleHeight
+            ) {
+                ballSpeedX *= -1;
+            }
+
+            if (ballX < 0 || ballX > canvas.width) {
+                ballX = canvas.width / 2;
+                ballY = canvas.height / 2;
+            }
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPaddle(0, playerY);
+            drawPaddle(canvas.width - paddleWidth, aiY);
+            drawBall(ballX, ballY);
+            moveAI();
+            updateBall();
+            requestAnimationFrame(gameLoop);
+        }
+
+        async function setupCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            return new Promise(resolve => video.onloadedmetadata = resolve);
         }
 
         async function loadHandTracking() {
@@ -49,35 +104,32 @@
                 { runtime: 'mediapipe', modelType: 'full' }
             );
 
-            async function trackHand() {
-                const video = document.createElement("video");
-                video.autoplay = true;
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
+            async function detectHands() {
+                const hands = await model.estimateHands(video);
 
-                async function detect() {
-                    const hands = await model.estimateHands(video);
-                    if (hands.length > 0) {
-                        const x = hands[0].keypoints[8].x;
-                        paddleX = (x / video.videoWidth) * canvas.width - paddleWidth / 2;
+                if (hands.length > 0) {
+                    const landmarks = hands[0].keypoints;
+                    const indexFinger = landmarks.find(point => point.name === 'index_finger_tip');
+
+                    if (indexFinger) {
+                        const y = (indexFinger.y / video.videoHeight) * canvas.height;
+                        playerY = y - paddleHeight / 2;
                     }
-                    requestAnimationFrame(detect);
                 }
 
-                detect();
+                requestAnimationFrame(detectHands);
             }
 
-            trackHand();
+            detectHands();
         }
 
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawPaddle();
-            requestAnimationFrame(gameLoop);
+        async function startGame() {
+            await setupCamera();
+            loadHandTracking();
+            gameLoop();
         }
 
-        gameLoop();
-        loadHandTracking();
+        startGame();
     </script>
 
 </body>
