@@ -13,22 +13,29 @@
         h1 {
             margin-top: 20px;
         }
-        .game-links {
-            margin-top: 20px;
-        }
-        .game-links button {
-            display: block;
-            font-size: 20px;
-            margin: 10px;
-            padding: 10px;
-            cursor: pointer;
-            background: #3498db;
-            color: white;
-            border: none;
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            display: inline-block;
             border-radius: 5px;
         }
-        .game-links button:hover {
-            background: #2980b9;
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            font-size: 17px;
+            transition: 0.3s;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
         }
         #game-frame {
             width: 90%;
@@ -42,21 +49,38 @@
 <body>
 
     <h1>🎮 Multi-Game Hub</h1>
-    <p>Click a game to play!</p>
+    <p>Select a game to play!</p>
 
-    <div class="game-links">
-        <button onclick=""loadGame('.html')">🏓 Play MediaPipe Line Pong</button>
-        <button onclick="loadGame('gt.html')">🎮 Play Hong Game</button>
-        <button onclick="loadGame('media-pipe-pong.html')">🐍 PONG</button>
+    <!-- Tab Links -->
+    <div class="tab">
+        <button class="tablinks" onclick="openGame(event, 'media-pipe-pong')">🏓 MediaPipe Line Pong</button>
+        <button class="tablinks" onclick="openGame(event, 'hong-game')">🎮 Hong Game</button>
+        <button class="tablinks" onclick="openGame(event, 'pong')">🐍 PONG</button>
     </div>
 
+    <!-- Game Frame -->
     <iframe id="game-frame"></iframe>
 
     <script>
-        function loadGame(gameUrl) {
+        function openGame(evt, gameName) {
             let frame = document.getElementById("game-frame");
             frame.style.display = "block";
-            frame.src = gameUrl;
+
+            // Set the iframe source based on the selected game
+            if (gameName === "media-pipe-pong") {
+                frame.src = "media-pipe-pong.html";
+            } else if (gameName === "hong-game") {
+                frame.src = "gt.html";
+            } else if (gameName === "pong") {
+                frame.src = "media-pipe-pong.html";
+            }
+
+            // Add active class to the clicked button
+            let tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            evt.currentTarget.className += " active";
         }
     </script>
 
