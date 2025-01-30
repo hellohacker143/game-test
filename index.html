@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balloon Gun Game</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        .tabs {
+            margin: 20px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .tab-button:hover {
+            background-color: #2980b9;
+        }
+
+        .tab-content {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* iframe styling */
+        iframe {
+            width: 90%;
+            height: 500px;
+            border: 2px solid black;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎮 One Page Game Hub</h1>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+        <button class="tab-button" onclick="openTab('tab1')">🎈 Balloon Gun Game</button>
+        <button class="tab-button" onclick="openTab('tab2')">🔢 Math Game</button>
+        <button class="tab-button" onclick="openTab('tab3')">🎨 Drawing Game</button>
+        <button class="tab-button" onclick="openTab('tab4')">🧩 Puzzle Game</button>
+        <button class="tab-button" onclick="openTab('tab5')">⚽ Sports Game</button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content active" id="tab1">
+        <h2>🎈 Balloon Gun Shooting Game</h2>
+        <p>Play the balloon gun game below!</p>
+        <iframe src="file:///C:/Users/Sai/Desktop/mix%20game/ballon%20gun.html"></iframe>
+    </div>
+
+    <div class="tab-content" id="tab2">
+        <h2>🔢 Math Game</h2>
+        <p>Math game will be here.</p>
+    </div>
+
+    <div class="tab-content" id="tab3">
+        <h2>🎨 Drawing Game</h2>
+        <p>Drawing game will be here.</p>
+    </div>
+
+    <div class="tab-content" id="tab4">
+        <h2>🧩 Puzzle Game</h2>
+        <p>Puzzle game will be here.</p>
+    </div>
+
+    <div class="tab-content" id="tab5">
+        <h2>⚽ Sports Game</h2>
+        <p>Sports game will be here.</p>
+    </div>
+
+    <script>
+        // Tab Switching Logic
+        function openTab(tabId) {
+            let tabs = document.querySelectorAll(".tab-content");
+            tabs.forEach(tab => tab.classList.remove("active"));
+            document.getElementById(tabId).classList.add("active");
+        }
+    </script>
+
+</body>
+</html>
