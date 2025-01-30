@@ -56,6 +56,7 @@
         <button class="tablinks" onclick="openGame(event, 'media-pipe-pong')">🏓 MediaPipe Line Pong</button>
         <button class="tablinks" onclick="openGame(event, 'hong-game')">🎮 Hong Game</button>
         <button class="tablinks" onclick="openGame(event, 'pong')">🐍 PONG</button>
+          <button class="tablinks" onclick="openGame(event, 'pong')">PROFILE</button>
     </div>
 
     <!-- Game Frame -->
@@ -73,6 +74,8 @@
                 frame.src = "gt.html";
             } else if (gameName === "pong") {
                 frame.src = "media-pipe-pong.html";
+                 } else if (gameName === "pong") {
+                frame.src = "V.html";
             }
 
             // Add active class to the clicked button
