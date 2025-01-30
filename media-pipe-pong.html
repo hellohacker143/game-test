@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaPipe Line Pong</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection"></script>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+        }
+        canvas {
+            background: #222;
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🏓 MediaPipe Line Pong</h1>
+    <p>Move your hand to control the paddle!</p>
+
+    <canvas id="pongCanvas" width="800" height="400"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let paddleX = canvas.width / 2 - 50;
+        const paddleWidth = 100;
+        const paddleHeight = 10;
+
+        function drawPaddle() {
+            ctx.fillStyle = "white";
+            ctx.fillRect(paddleX, canvas.height - 20, paddleWidth, paddleHeight);
+        }
+
+        async function loadHandTracking() {
+            const model = await handPoseDetection.createDetector(
+                handPoseDetection.SupportedModels.MediaPipeHands,
+                { runtime: 'mediapipe', modelType: 'full' }
+            );
+
+            async function trackHand() {
+                const video = document.createElement("video");
+                video.autoplay = true;
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+
+                async function detect() {
+                    const hands = await model.estimateHands(video);
+                    if (hands.length > 0) {
+                        const x = hands[0].keypoints[8].x;
+                        paddleX = (x / video.videoWidth) * canvas.width - paddleWidth / 2;
+                    }
+                    requestAnimationFrame(detect);
+                }
+
+                detect();
+            }
+
+            trackHand();
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPaddle();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+        loadHandTracking();
+    </script>
+
+</body>
+</html>
