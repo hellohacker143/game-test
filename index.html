@@ -203,12 +203,6 @@
             }
         }
 
-        // Initialize the chat window with chat history
-        window.onload = function () {
-            displayChat();
-            generateQRCode();
-        };
-
         // Optionally, you can also load chat data from the URL (for scanning the QR code)
         function loadChatFromURL() {
             var urlParams = new URLSearchParams(window.location.search);
