@@ -3,33 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chat Application</title>
-    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <title>Live Board</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        #chatWindow {
+        #liveBoard {
             width: 100%;
-            height: 300px;
-            border: 1px solid #ccc;
+            height: 200px;
+            border: 2px solid #ccc;
             padding: 10px;
-            overflow-y: scroll;
-            margin-bottom: 20px;
+            margin-top: 20px;
             background-color: #f9f9f9;
+            overflow-y: auto;
         }
 
-        #messageInput {
-            width: calc(100% - 90px);
+        #textInput {
+            width: 80%;
             padding: 10px;
-            margin-right: 10px;
+            margin-bottom: 20px;
             font-size: 16px;
         }
 
         button {
-            padding: 10px;
+            padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
             background-color: #4CAF50;
@@ -41,159 +43,44 @@
             background-color: #45a049;
         }
 
-        .message {
-            padding: 8px;
-            margin: 5px;
-            background-color: #e9e9e9;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        .message.user {
-            background-color: #d1f7c4;
-        }
-
-        .message.bot {
-            background-color: #f0f0f0;
-        }
-
-        .note {
-            font-size: 14px;
-            color: #555;
-        }
-
-        .inputField {
-            margin-bottom: 20px;
-        }
-
-        #qrCode {
-            margin-top: 20px;
-        }
-
-        #codeInput {
-            margin-bottom: 10px;
+        #message {
+            font-size: 18px;
+            color: #333;
         }
     </style>
 </head>
 <body>
-    <h1>Simple Chat Application</h1>
 
-    <!-- Code Generator for First User -->
-    <div class="inputField">
-        <button onclick="generateCode()">Generate Chat Code</button>
-        <p id="generatedCode"></p>
+    <h1>Live Text Board</h1>
+    
+    <input type="text" id="textInput" placeholder="Type something..." oninput="updateLiveBoard()">
+    <button onclick="sendText()">Send</button>
+
+    <div id="liveBoard">
+        <p id="message">Your live text will appear here...</p>
     </div>
-
-    <!-- Code Entry for Second User -->
-    <div class="inputField">
-        <input type="text" id="codeInput" placeholder="Enter Chat Code">
-        <button onclick="startChat()">Accept Chat</button>
-    </div>
-
-    <!-- Chat Window -->
-    <div id="chatWindow"></div>
-
-    <!-- Message Input for Chat -->
-    <input type="text" id="messageInput" placeholder="Type a message..." disabled>
-    <button onclick="sendMessage()" id="sendBtn" disabled>Send</button>
-
-    <p class="note">Note: Chat messages are saved in your browser. Refresh to see history.</p>
-
-    <div id="qrCode"></div>
 
     <script>
-        // Generate a random code for the chat session
-        function generateCode() {
-            var code = Math.random().toString(36).substring(2, 8).toUpperCase();
-            document.getElementById('generatedCode').innerText = `Share this code: ${code}`;
-
-            // Store the generated code in localStorage
-            localStorage.setItem('chatCode', code);
-
-            // Generate QR code for sharing the code
-            var qrCode = new QRCode(document.getElementById('qrCode'), {
-                text: code,
-                width: 128,
-                height: 128,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.L
-            });
+        // Update the live board as the user types
+        function updateLiveBoard() {
+            var userInput = document.getElementById('textInput').value;
+            // Store the text in localStorage to reflect it across sessions
+            localStorage.setItem('liveText', userInput);
         }
 
-        // Start the chat when the second user enters the correct code
-        function startChat() {
-            var enteredCode = document.getElementById('codeInput').value.trim();
-            var generatedCode = localStorage.getItem('chatCode');
+        // Send button to confirm the message
+        function sendText() {
+            var userInput = document.getElementById('textInput').value;
+            localStorage.setItem('liveText', userInput);  // Ensure the latest text is stored
+            updateLiveBoard();  // Reflect the text change on the live board immediately
+        }
 
-            if (enteredCode === generatedCode) {
-                alert("Code matched! You can now chat.");
-
-                // Enable chat input
-                document.getElementById('messageInput').disabled = false;
-                document.getElementById('sendBtn').disabled = false;
-
-                // Hide code entry fields
-                document.querySelector('.inputField').style.display = 'none';
-                document.getElementById('chatWindow').style.display = 'block';
-
-                // Initialize chat if there's existing history
-                displayChat();
-            } else {
-                alert("Invalid code. Please try again.");
+        // Initialize the live board with the existing content from localStorage
+        window.onload = function() {
+            var liveText = localStorage.getItem('liveText');
+            if (liveText) {
+                document.getElementById('message').innerText = liveText;
             }
-        }
-
-        // Send a message and display it in the chat window
-        function sendMessage() {
-            var message = document.getElementById('messageInput').value.trim();
-            if (message !== "") {
-                var userName = 'User 2';  // Second user is "User 2"
-
-                var messageObj = {
-                    text: message,
-                    sender: userName,
-                    time: new Date().toLocaleTimeString()
-                };
-
-                var chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
-                chatHistory.push(messageObj);
-                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-
-                // Clear input field
-                document.getElementById('messageInput').value = "";
-
-                // Display updated chat
-                displayChat();
-            }
-        }
-
-        // Display chat history in the chat window
-        function displayChat() {
-            var chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
-            var chatWindow = document.getElementById('chatWindow');
-            chatWindow.innerHTML = "";  // Clear chat window before displaying new content
-
-            chatHistory.forEach(function (message) {
-                var messageElement = document.createElement('div');
-                messageElement.classList.add('message');
-                if (message.sender === 'User 2') {
-                    messageElement.classList.add('user');
-                } else {
-                    messageElement.classList.add('bot');
-                }
-
-                messageElement.innerHTML = `<strong>${message.sender}</strong> (${message.time}): ${message.text}`;
-                chatWindow.appendChild(messageElement);
-            });
-
-            // Scroll to the bottom of the chat window to show the latest message
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-
-        // Initialize chat window with any existing chat history
-        window.onload = function () {
-            displayChat();
         };
     </script>
 </body>
