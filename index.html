@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with Shareable URL</title>
+    <title>Simple Chat Application</title>
     <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <style>
         body {
@@ -66,106 +66,123 @@
             margin-bottom: 20px;
         }
 
-        .qrCode {
+        #qrCode {
             margin-top: 20px;
         }
 
-        #qrCode {
-            margin-top: 20px;
+        #codeInput {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Chat with Shareable URL</h1>
+    <h1>Simple Chat Application</h1>
 
-    <!-- Name Input Field -->
+    <!-- Code Generator for First User -->
     <div class="inputField">
-        <label for="userName">Enter Your Name: </label>
-        <input type="text" id="userName" placeholder="Your name..." oninput="saveName()">
+        <button onclick="generateCode()">Generate Chat Code</button>
+        <p id="generatedCode"></p>
+    </div>
+
+    <!-- Code Entry for Second User -->
+    <div class="inputField">
+        <input type="text" id="codeInput" placeholder="Enter Chat Code">
+        <button onclick="startChat()">Accept Chat</button>
     </div>
 
     <!-- Chat Window -->
-    <div id="chatWindow">
-        <!-- Messages will appear here -->
-    </div>
+    <div id="chatWindow"></div>
 
-    <!-- Input and Button -->
-    <input type="text" id="messageInput" placeholder="Type a message..." oninput="enableSendButton()">
-    <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
-    <button onclick="clearChat()">Clear All Chats</button>
+    <!-- Message Input for Chat -->
+    <input type="text" id="messageInput" placeholder="Type a message..." disabled>
+    <button onclick="sendMessage()" id="sendBtn" disabled>Send</button>
 
     <p class="note">Note: Chat messages are saved in your browser. Refresh to see history.</p>
 
-    <!-- QR Code Section -->
-    <div class="qrCode">
-        <p>Scan this QR Code to share the chat:</p>
-        <div id="qrCode"></div>
-    </div>
+    <div id="qrCode"></div>
 
     <script>
-        // Save user name in localStorage
-        function saveName() {
-            var userName = document.getElementById('userName').value.trim();
-            if (userName) {
-                localStorage.setItem('userName', userName);
+        // Generate a random code for the chat session
+        function generateCode() {
+            var code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            document.getElementById('generatedCode').innerText = `Share this code: ${code}`;
+
+            // Store the generated code in localStorage
+            localStorage.setItem('chatCode', code);
+
+            // Generate QR code for sharing the code
+            var qrCode = new QRCode(document.getElementById('qrCode'), {
+                text: code,
+                width: 128,
+                height: 128,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
+        }
+
+        // Start the chat when the second user enters the correct code
+        function startChat() {
+            var enteredCode = document.getElementById('codeInput').value.trim();
+            var generatedCode = localStorage.getItem('chatCode');
+
+            if (enteredCode === generatedCode) {
+                alert("Code matched! You can now chat.");
+
+                // Enable chat input
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+
+                // Hide code entry fields
+                document.querySelector('.inputField').style.display = 'none';
+                document.getElementById('chatWindow').style.display = 'block';
+
+                // Initialize chat if there's existing history
+                displayChat();
+            } else {
+                alert("Invalid code. Please try again.");
             }
         }
 
-        // Get the user name from localStorage
-        function getUserName() {
-            return localStorage.getItem('userName') || 'Anonymous';
-        }
-
-        // Send message and store in localStorage
+        // Send a message and display it in the chat window
         function sendMessage() {
             var message = document.getElementById('messageInput').value.trim();
             if (message !== "") {
-                var userName = getUserName();
+                var userName = 'User 2';  // Second user is "User 2"
 
-                // Create a new message object
                 var messageObj = {
                     text: message,
                     sender: userName,
                     time: new Date().toLocaleTimeString()
                 };
 
-                // Save the message in localStorage
                 var chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
                 chatHistory.push(messageObj);
                 localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
 
-                // Clear the message input field
+                // Clear input field
                 document.getElementById('messageInput').value = "";
 
                 // Display updated chat
                 displayChat();
-                generateQRCode(); // Update QR Code
             }
         }
 
-        // Enable the send button when a message is entered
-        function enableSendButton() {
-            var message = document.getElementById('messageInput').value.trim();
-            document.getElementById('sendBtn').disabled = message === "";
-        }
-
-        // Display chat messages
+        // Display chat history in the chat window
         function displayChat() {
             var chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
             var chatWindow = document.getElementById('chatWindow');
             chatWindow.innerHTML = "";  // Clear chat window before displaying new content
 
             chatHistory.forEach(function (message) {
-                // Create a new message element
                 var messageElement = document.createElement('div');
                 messageElement.classList.add('message');
-                if (message.sender === getUserName()) {
+                if (message.sender === 'User 2') {
                     messageElement.classList.add('user');
                 } else {
                     messageElement.classList.add('bot');
                 }
 
-                // Set the message text and time
                 messageElement.innerHTML = `<strong>${message.sender}</strong> (${message.time}): ${message.text}`;
                 chatWindow.appendChild(messageElement);
             });
@@ -174,54 +191,9 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        // Clear chat history
-        function clearChat() {
-            localStorage.removeItem('chatHistory');
-            displayChat();
-            generateQRCode(); // Clear QR code when chat is cleared
-        }
-
-        // Generate a QR Code with the chat content as URL
-        function generateQRCode() {
-            var chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
-            var chatText = chatHistory.map(msg => `${msg.sender} (${msg.time}): ${msg.text}`).join("\n");
-
-            // Create a URL with the chat content as a query string
-            var chatURL = window.location.href.split('?')[0] + "?chat=" + encodeURIComponent(chatText);
-
-            // Clear existing QR code and generate new one
-            document.getElementById('qrCode').innerHTML = "";
-            if (chatText) {
-                var qrCode = new QRCode(document.getElementById('qrCode'), {
-                    text: chatURL,
-                    width: 128,
-                    height: 128,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.L
-                });
-            }
-        }
-
-        // Optionally, you can also load chat data from the URL (for scanning the QR code)
-        function loadChatFromURL() {
-            var urlParams = new URLSearchParams(window.location.search);
-            var chatContent = urlParams.get('chat');
-            if (chatContent) {
-                var chatHistory = chatContent.split("\n").map(function (message) {
-                    var parts = message.split(": ");
-                    return { sender: parts[0], text: parts[1], time: new Date().toLocaleTimeString() };
-                });
-                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-                displayChat();
-            }
-        }
-
-        // Load chat from the URL if available
+        // Initialize chat window with any existing chat history
         window.onload = function () {
-            loadChatFromURL();
             displayChat();
-            generateQRCode();
         };
     </script>
 </body>
